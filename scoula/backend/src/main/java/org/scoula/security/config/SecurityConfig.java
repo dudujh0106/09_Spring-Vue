@@ -81,7 +81,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     // 접근 제한 무시 경로 설정 – resource
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/assets/**", "/*", "/api/member/**",
+        web.ignoring().antMatchers("/assets/**", "/*",
                 "/swagger-ui.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs"
         );
     }
@@ -106,7 +106,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .authorizeRequests() // 경로별 접근 권한 설정
             .antMatchers(HttpMethod.OPTIONS).permitAll()
-            // 일단 모든 접근 허용
+
+            // 🌐 회원 관련 공개 API (인증 불필요)
+            .antMatchers(HttpMethod.GET, "/api/member/checkusername/**").permitAll()     // ID 중복 체크
+            .antMatchers(HttpMethod.POST, "/api/member").permitAll()                    // 회원가입
+            .antMatchers(HttpMethod.GET, "/api/member/*/avatar").permitAll()            // 아바타 이미지
+
+            // 🔒 회원 관련 인증 필요 API
+            .antMatchers(HttpMethod.PUT, "/api/member/**").authenticated() // 회원 정보 수정, 비밀번호 변경
             .anyRequest().permitAll();
 
     }
