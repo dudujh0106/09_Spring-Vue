@@ -13,7 +13,8 @@ import org.springframework.web.servlet.view.JstlView;
         "org.scoula.exception",
         "org.scoula.controller",
         "org.scoula.board.controller",
-        "org.scoula.member.controller"
+        "org.scoula.member.controller",
+        "org.scoula.travel.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
     @Override

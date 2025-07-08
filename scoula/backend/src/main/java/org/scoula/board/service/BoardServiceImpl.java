@@ -6,6 +6,8 @@ import org.scoula.board.domain.BoardAttachmentVO;
 import org.scoula.board.domain.BoardVO;
 import org.scoula.board.dto.BoardDTO;
 import org.scoula.board.mapper.BoardMapper;
+import org.scoula.common.pagination.Page;
+import org.scoula.common.pagination.PageRequest;
 import org.scoula.common.util.UploadFiles;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,15 @@ public class BoardServiceImpl implements BoardService {
     private final BoardMapper boardMapper;  // Mapper 의존성 주입
     // 파일 저장될 디렉토리 경로
     private final static String BASE_DIR = "c:/upload/board";
+
+    @Override
+    public Page<BoardDTO> getPage(PageRequest pageRequest) {
+        List<BoardVO> boards = boardMapper.getPage(pageRequest);
+        int totalCount = boardMapper.getTotalCount();
+
+        return Page.of(pageRequest, totalCount,
+                boards.stream().map(BoardDTO::of).toList());
+    }
 
     // 목록 조회 서비스
     @Override
@@ -74,6 +85,13 @@ public class BoardServiceImpl implements BoardService {
         log.info("update......" + board);
 
         int affectedRows = boardMapper.update(board.toVO());  // 영향받은 행 수 반환
+
+        // 파일 업로드 처리
+        List<MultipartFile> files = board.getFiles();
+        if(files != null && !files.isEmpty()) {
+            upload(board.getNo(), files);
+        }
+
         return get(board.getNo());                        // 1개 행이 수정되면 성공
     }
 

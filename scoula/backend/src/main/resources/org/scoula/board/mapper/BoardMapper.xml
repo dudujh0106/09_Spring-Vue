@@ -108,4 +108,13 @@
         5. 변환된 BoardAttachmentVO는 BoardVO.attaches 필드에 자동 추가(add)
         6. 최종 완성된 BoardVO 객체 반환
     -->
+
+    <select id="getTotalCount" resultType="java.lang.Integer">
+        select count(*) from tbl_board
+    </select>
+
+    <select id="getPage" resultType="BoardVO">
+        select * from tbl_board order by no desc
+        limit #{offset}, #{amount}
+    </select>
 </mapper>

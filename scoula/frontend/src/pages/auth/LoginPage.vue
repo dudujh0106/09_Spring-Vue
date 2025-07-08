@@ -1,8 +1,9 @@
 <script setup>
 import { computed, reactive, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
+const cr = useRoute();
 const router = useRouter();
 const auth = useAuthStore();
 
@@ -19,7 +20,11 @@ const login = async () => {
   console.log(member);
   try {
     await auth.login(member); // 인증 스토어의 login 액션 호출
-    router.push('/'); // 성공 시 홈페이지로 이동
+    if (cr.query.next) {
+      router.push({ name: cr.query.next }); // 성공 시 홈페이지로 이동
+    } else {
+      router.push('/');
+    }
   } catch (e) {
     console.log('에러=======', e);
     error.value = e.response.data; // 에러 메시지 표시

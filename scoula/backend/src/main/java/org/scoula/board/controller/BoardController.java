@@ -3,12 +3,18 @@ package org.scoula.board.controller;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.board.domain.BoardAttachmentVO;
 import org.scoula.board.dto.BoardDTO;
 import org.scoula.board.service.BoardService;
+import org.scoula.common.pagination.Page;
+import org.scoula.common.pagination.PageRequest;
+import org.scoula.common.util.UploadFiles;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.io.File;
 
 @RestController
 @RequestMapping("/api/board")
@@ -23,19 +29,24 @@ public class BoardController {
 //        return service.getList();
 //    }
 
-    @ApiOperation(value = "게시글 목록", notes = "게시글 목록을 얻는 API")
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "성공적으로 요청이 처리되었습니다.", response = BoardDTO.class),
-            @ApiResponse(code = 400, message = "잘못된 요청입니다."),
-            @ApiResponse(code = 500, message = "서버에서 오류가 발생했습니다.")
-    })
     @GetMapping("")
-    public ResponseEntity<List<BoardDTO>> getList() {
-        log.info("============> 게시글 전체 목록 조회");
-
-        List<BoardDTO> list = service.getList();
-        return ResponseEntity.ok(list); // 200 OK + 데이터 반환
+    public ResponseEntity<Page> getList(PageRequest pageRequest) {
+        return ResponseEntity.ok(service.getPage(pageRequest));
     }
+
+//    @ApiOperation(value = "게시글 목록", notes = "게시글 목록을 얻는 API")
+//    @ApiResponses(value = {
+//            @ApiResponse(code = 200, message = "성공적으로 요청이 처리되었습니다.", response = BoardDTO.class),
+//            @ApiResponse(code = 400, message = "잘못된 요청입니다."),
+//            @ApiResponse(code = 500, message = "서버에서 오류가 발생했습니다.")
+//    })
+//    @GetMapping("")
+//    public ResponseEntity<List<BoardDTO>> getList() {
+//        log.info("============> 게시글 전체 목록 조회");
+//
+//        List<BoardDTO> list = service.getList();
+//        return ResponseEntity.ok(list); // 200 OK + 데이터 반환
+//    }
 
     @ApiOperation(value = "상세정보 얻기", notes = "게시글 상세 정보를 얻는 API")
     @ApiResponses(value = {
@@ -54,7 +65,7 @@ public class BoardController {
     }
 
     @PostMapping("")
-    public ResponseEntity<BoardDTO> create(@RequestBody BoardDTO board) {
+    public ResponseEntity<BoardDTO> create(BoardDTO board) {
         log.info("============> 게시글 생성: " + board);
 
         // 새 게시글 생성 후 결과 반환
@@ -65,7 +76,7 @@ public class BoardController {
     @PutMapping("/{no}")
     public ResponseEntity<BoardDTO> update(
             @PathVariable Long no,           // URL에서 게시글 번호 추출
-            @RequestBody BoardDTO board      // 수정할 데이터 (JSON)
+            BoardDTO board      // 수정할 데이터 (JSON)
     ) {
         log.info("============> 게시글 수정: " + no + ", " + board);
 
@@ -83,5 +94,17 @@ public class BoardController {
         BoardDTO deletedBoard = service.delete(no);
 //        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         return ResponseEntity.ok(deletedBoard);
+    }
+
+    @GetMapping("/download/{no}")
+    public void download(@PathVariable Long no, HttpServletResponse response) throws Exception {
+        BoardAttachmentVO attachment = service.getAttachment(no);
+        File file = new File(attachment.getPath());
+        UploadFiles.download(response, file, attachment.getFilename());
+    }
+
+    @DeleteMapping("/deleteAttachment/{no}")
+    public ResponseEntity<Boolean> deleteAttachment(@PathVariable Long no) throws Exception {
+        return ResponseEntity.ok(service.deleteAttachment(no));
     }
 }
